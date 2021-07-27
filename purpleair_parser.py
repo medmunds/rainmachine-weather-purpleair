@@ -1,9 +1,15 @@
 import time
+import sys
 
 from RMParserFramework.rmParser import RMParser
 from RMUtilsFramework.rmLogging import log
 
 import json
+
+
+# Older RainMachine models (e.g., Mini-8) have outdated root certificates,
+# which don't work with https://www.purpleair.com. Fall back to http for them.
+USE_HTTPS = sys.version_info >= (2, 7, 12)
 
 
 class PurpleAir(RMParser):
@@ -13,11 +19,11 @@ class PurpleAir(RMParser):
     parserHistorical = True
     parserInterval = 60 * 60  # seconds (no point reporting more than once an hour)
     parserDebug = False
-    purpleAirUrl = "https://www.purpleair.com/json"
+    purpleAirUrl = "%s://www.purpleair.com/json" % ("https" if USE_HTTPS else "http")
     params = {
         "sensorId": None,
         "keyForPrivateSensor": None,
-        "_maxAgeMinutes": 60  # ignore data older than this
+        "_maxAgeMinutes": 60,  # ignore data older than this
     }
 
     def perform(self):
