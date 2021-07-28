@@ -28,8 +28,15 @@ class PurpleAir(RMParser):
     params = {
         "sensorId": None,
         "keyForPrivateSensor": None,
-        "_maxAgeMinutes": 60,  # ignore data older than this
     }
+    defaultParams = {
+        "sensorId": None,
+        "keyForPrivateSensor": None,
+    }
+    maxAgeMinutes = 60  # ignore data older than this
+
+    def isEnabledForLocation(self, timezone, lat, long):
+        return self.parserEnabled
 
     def perform(self):
         sensor_id = self.params.get("sensorId", None)
@@ -99,7 +106,7 @@ class PurpleAir(RMParser):
         # Filter out responses that are too old (e.g., offline sensors).
         # (Another approach would be to check result["AGE"], which is in minutes.)
         data_age_minutes = (time.time() - timestamp) / 60
-        if data_age_minutes > self.params.get("_maxAgeMinutes", 60):
+        if data_age_minutes > self.maxAgeMinutes:
             self.lastKnownError = "ignoring old data (%d minutes)" % data_age_minutes
             log.warning(self.lastKnownError)
             return None
