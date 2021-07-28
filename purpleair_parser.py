@@ -18,7 +18,7 @@ USE_HTTPS = sys.version_info >= (2, 7, 12)
 
 
 class PurpleAir(RMParser):
-    parserName = "PurpleAir"
+    parserName = "PurpleAir Parser"
     parserDescription = "Obtain temperature from PurpleAir sensor"
     parserForecast = False
     parserHistorical = True
