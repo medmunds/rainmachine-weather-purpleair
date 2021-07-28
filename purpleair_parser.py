@@ -12,9 +12,20 @@ from RMUtilsFramework.rmLogging import log
 import json
 
 
+PROJECT = "rainmachine-weather-purpleair"
+VERSION = "0.1"
+ABOUT_URL = "https://github.com/medmunds/rainmachine-weather-purpleair"
+
+log.info("Loaded %s v%s", PROJECT, VERSION)
+
 # Older RainMachine models (e.g., Mini-8) have outdated root certificates,
 # which don't work with https://www.purpleair.com. Fall back to http for them.
 USE_HTTPS = sys.version_info >= (2, 7, 12)
+if not USE_HTTPS:
+    log.info("Falling back to http due to outdated platform")
+
+# Identify ourself when querying PurpleAir's API
+USER_AGENT = "{project}/{version} ({about_url})".format(project=PROJECT, version=VERSION, about_url=ABOUT_URL)
 
 
 class PurpleAir(RMParser):
@@ -60,7 +71,7 @@ class PurpleAir(RMParser):
         if api_key:
             # Key is only required to access private sensors
             params["key"] = api_key
-        response = self.openURL(self.purpleAirUrl, params)
+        response = self.openURL(self.purpleAirUrl, params, headers={"user-agent": USER_AGENT})
         if response is None:
             # For errors from urllib2.urlopen, openURL logs the actual error,
             # sets lastKnownError to generic "Error: Can not open url",

@@ -62,7 +62,8 @@ class MockPurpleAirAPITests(ParserBaseTestCase):
         parser = self.run_parser(sensorId="70735", keyForPrivateSensor="")
 
         self.mock_open_url.assert_called_once_with(
-            "https://www.purpleair.com/json", {"show": "70735"})
+            "https://www.purpleair.com/json", {"show": "70735"},
+            headers={"user-agent": ANY})
 
         self.mock_add_value.assert_any_call("RH", 1627065227, Approximately(50.0))
         self.mock_add_value.assert_any_call("PRESSURE", 1627065227, Approximately(101.359))
@@ -75,7 +76,8 @@ class MockPurpleAirAPITests(ParserBaseTestCase):
         self.set_open_url_response("purpleair-outdoor.json")
         self.run_parser(sensorId="70735", keyForPrivateSensor="ABCDEFG")
         self.mock_open_url.assert_called_once_with(
-            "https://www.purpleair.com/json", {"show": "70735", "key": "ABCDEFG"})
+            "https://www.purpleair.com/json", {"show": "70735", "key": "ABCDEFG"},
+            headers={"user-agent": ANY})
 
     def test_offline(self):
         # This sensor has been offline for more than one hour, so should be ignored
