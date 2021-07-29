@@ -183,7 +183,7 @@ python -m unittest discover -s ./test -t .
 ```
 
 
-[purpleair_parser_raw]: ./raw/main/purpleair_parser.py 
+[purpleair_parser_raw]: https://raw.githubusercontent.com/medmunds/rainmachine-weather-purpleair/main/purpleair_parser.py 
 [PurpleAir]: https://www2.purpleair.com/
 [purpleair-map]: https://www.purpleair.com/map?opt=1/m/i/mTEMP_C/a10/cC0#1.06/-8/-2.1
 [RainMachine]: https://rainmachine.com/
