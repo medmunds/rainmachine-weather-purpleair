@@ -65,9 +65,9 @@ class MockPurpleAirAPITests(ParserBaseTestCase):
             "https://www.purpleair.com/json", {"show": "70735"},
             headers={"user-agent": ANY})
 
-        self.mock_add_value.assert_any_call("RH", 1627065227, Approximately(50.0))
+        self.mock_add_value.assert_any_call("RH", 1627065227, Approximately(69.437, places=3))
         self.mock_add_value.assert_any_call("PRESSURE", 1627065227, Approximately(101.359))
-        self.mock_add_value.assert_any_call("TEMPERATURE", 1627065227, Approximately(16.667, places=3))
+        self.mock_add_value.assert_any_call("TEMPERATURE", 1627065227, Approximately(15.871, places=3))
         self.assertEqual(self.mock_add_value.call_count, 3)
 
         self.assertEqual(parser.lastKnownError, "")

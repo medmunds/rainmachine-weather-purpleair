@@ -5,6 +5,7 @@
 
 import time
 import sys
+from math import exp
 
 from RMParserFramework.rmParser import RMParser
 from RMUtilsFramework.rmLogging import log
@@ -13,7 +14,7 @@ import json
 
 
 PROJECT = "rainmachine-weather-purpleair"
-VERSION = "0.1"
+VERSION = "0.2"
 ABOUT_URL = "https://github.com/medmunds/rainmachine-weather-purpleair"
 
 log.info("Loaded %s v%s", PROJECT, VERSION)
@@ -105,7 +106,8 @@ class PurpleAir(RMParser):
             return None
 
         try:
-            timestamp = result["LastSeen"]  # unix timestamp
+            # https://www2.purpleair.com/community/faq#hc-json-object-fields
+            timestamp = result["LastSeen"]  # "Last seen data time stamp in UTC"
             temp_f = float(result["temp_f"])
             humidity = float(result["humidity"])  # 0..100
             pressure_millibars = float(result["pressure"])
@@ -122,13 +124,11 @@ class PurpleAir(RMParser):
             log.warning(self.lastKnownError)
             return None
 
-        # Device internal temp_f is 8 degrees higher than ambient temperature
-        # (per https://www2.purpleair.com/community/faq#!hc-primary-and-secondary-data-header)
-        temp_f = temp_f - 8.0
-
         # Convert from PurpleAir's to RainMachine's preferred units
-        temp_c = (temp_f - 32.0) * 5.0 / 9.0
-        pressure_kpa = pressure_millibars / 10.0  # PurpleAir reports millibars
+        temp_c = f_to_c(temp_f)
+        pressure_kpa = millibars_to_kpa(pressure_millibars)
+
+        temp_c, humidity = self.correct_for_purpleair_heating(temp_c, humidity)
 
         return {
             "timestamp": timestamp,
@@ -142,3 +142,40 @@ class PurpleAir(RMParser):
         for data_type, value in cleaned.items():
             self.addValue(data_type, timestamp, value)
             log.debug("added '%s': %0.1f at %d" % (data_type, value, timestamp))
+
+    @staticmethod
+    def correct_for_purpleair_heating(temp_c_pa, humidity_pa):
+        """
+        Return adjusted temp_c and humidity after correcting
+        for internal heating caused by PurpleAir's electronics.
+        """
+        # Source: Dr. Peter Jackson of University of Northern British Columbia, based
+        # on two year colocation study of 150+ Purple Air sensors in Prince George, BC.
+        # Discussion in PurpleAir community thread:
+        # https://www.facebook.com/groups/purpleair/posts/722201454903597/?comment_id=722399368217139
+        temp_c = temp_c_pa - 5.24
+        humidity = (humidity_pa * saturation_vapour_pressure(temp_c_pa)
+                    / saturation_vapour_pressure(temp_c))
+        return temp_c, humidity
+
+
+def f_to_c(temp_f):
+    return (temp_f - 32.0) * 5.0 / 9.0
+
+
+def millibars_to_kpa(pressure_millibars):
+    return pressure_millibars / 10.0
+
+
+def saturation_vapour_pressure(temp_c):
+    """
+    Approximate saturation vapour pressure of liquid water, in kPa,
+    at the given temperature.
+    """
+    # Buck Equation is accurate across most meteorological temperatures.
+    # https://en.wikipedia.org/wiki/Arden_Buck_equation
+    # https://en.wikipedia.org/wiki/Vapour_pressure_of_water#Accuracy_of_different_formulations
+    return 0.61121 * exp(
+        (18.678 - (temp_c / 234.5)) *
+        (temp_c / (257.14 + temp_c))
+    )
