@@ -9,13 +9,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          # RainMachine firmware 4.0.1152
+          - 2.7.14
+          # RainMachine firmware 4.0.1003
+          - 2.7.3
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - uses: actions/setup-python@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          python-version: "2.7"
+          python-version: ${{ matrix.python-version }}
       - name: Install test requirements
         run: pip install -r requirements-test.txt
       - name: Run tests
