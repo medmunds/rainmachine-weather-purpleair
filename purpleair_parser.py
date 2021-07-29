@@ -1,3 +1,8 @@
+# purpleair_parser.py
+# Custom PurpleAir weather service for RainMachine
+# Released under the MIT License
+# https://github.com/medmunds/rainmachine-weather-purpleair/LICENSE
+
 import time
 import sys
 
