@@ -8,23 +8,33 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # ubuntu-18.04 required for older libssl-dev (not available on ubuntu-20)
+    runs-on: ubuntu-18.04
     strategy:
+      fail-fast: false
       matrix:
-        python-version:
+        config:
           # RainMachine firmware 4.0.1152
-          - 2.7.14
+          - { python: "2.7.14" }
           # RainMachine firmware 4.0.1003
-          - 2.7.3
+          - { python: "2.7.3", libssl: "1.0" }
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Downgrade to libssl-dev 1.0 for older Python
+        if: matrix.config.libssl == '1.0'
+        # Python <= 2.7.12 or <= 3.5.2
+        # https://github.com/pyenv/pyenv/wiki/Common-build-problems#2-your-openssl-version-is-incompatible-with-the-python-version-youre-trying-to-install
+        run: |
+          sudo apt-get -q -o=Dpkg::Use-Pty=0 remove libssl-dev
+          sudo apt-get -q -o=Dpkg::Use-Pty=0 update
+          sudo apt-get -q -o=Dpkg::Use-Pty=0 install libssl1.0-dev
+      - name: Set up Python ${{ matrix.config.python }}
         uses: gabrielfalcao/pyenv-action@v8
         with:
-          default: "${{ matrix.python-version }}"
-          command: pip install -U pip
+          default: "${{ matrix.config.python }}"
+          # command: pip install -U pip
       - name: Install test requirements
         run: pip install -r requirements-test.txt
       - name: Run tests
