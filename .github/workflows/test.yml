@@ -21,9 +21,10 @@ jobs:
         with:
           submodules: true
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: gabrielfalcao/pyenv-action@v8
         with:
-          python-version: ${{ matrix.python-version }}
+          default: "${{ matrix.python-version }}"
+          command: pip install -U pip
       - name: Install test requirements
         run: pip install -r requirements-test.txt
       - name: Run tests
