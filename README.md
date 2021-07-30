@@ -3,6 +3,8 @@
 Use the PurpleAir sensor network as a "local weather service"
 for your RainMachine irrigation controller. (No need to own a PurpleAir.)
 
+[![Test status](https://github.com/medmunds/rainmachine-weather-purpleair/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/medmunds/rainmachine-weather-purpleair/actions/workflows/test.yml)
+
 
 ## Why?
 
