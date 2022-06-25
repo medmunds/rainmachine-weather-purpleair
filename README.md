@@ -36,6 +36,10 @@ hyper-local rainfall info, but it's a pretty decent substitute for the other sta
 This project implements a custom RainMachine weather service that pulls data
 from the PurpleAir sensor network.
 
+Note: this weather service will not work with older RainMachine models (such as 
+the Mini-8), because they run ancient system software that is unable to securely 
+communicate with the PurpleAir API.
+
 
 ## Usage
 
@@ -44,7 +48,14 @@ from the PurpleAir sensor network.
 You'll add this project's "PurpleAir Parser" to your RainMachine
 as a custom weather service.
 
-1. First, find a PurpleAir sensor near you.
+1. First, you'll need a PurpleAir API key. There's no charge.
+   Request a key by emailing the address found on the 
+   [PurpleAir contact page][purpleair-contact].
+
+   (This code queries data once an hour, so is well under
+   PurpleAir's API rate limits.)
+
+2. Next, find a PurpleAir sensor near you.
    
    On the [PurpleAir sensor map][purpleair-map], zoom into your location,
    find a sensor that looks promising, and get its **sensor id**.
@@ -52,7 +63,7 @@ as a custom weather service.
    When you click a sensor on the map, its id will appear in the url as a number 
    after `select=`. It's usually 4-6 digits. E.g., if the url shows 
    `https://www.purpleair.com/map?...cC0&select=71775#11/37...`, 
-   the sensor id is `71755`.
+   the sensor id is `71775`.
    
    Tips:
    
@@ -65,7 +76,7 @@ as a custom weather service.
       you experienced. (They might be installed in full sun. Or not actually outdoors.)
     * You can change to ºF or ºC in the map controls at bottom left.
 
-2. Download [purpleair_parser.py][purpleair_parser_raw] from this project.
+3. Download [purpleair_parser.py][purpleair_parser_raw] from this project.
    
    You're just saving the file temporarily to use in the next step. It doesn't matter
    where you save it. (The Downloads folder is fine.)
@@ -73,25 +84,30 @@ as a custom weather service.
    (You might want to look through the file and reassure yourself it's not doing
    anything evil.)
 
-3. Follow RainMachine's [*Installing other Weather Services*][rainmachine-custom-weather]
+4. Follow RainMachine's [*Installing other Weather Services*][rainmachine-custom-weather]
    instructions to add the "Custom:PurpleAir" service.
    
    When you get to the "Choose File" part, use the `purpleair_parser.py` file you
    downloaded in step 2.
    
-   When you get to the "enable it and configure" part, enter the `sensorId` from
-   step 1. Just leave `keyForPrivateSensor` blank, unless want to use your own,
-   [private PurpleAir](#private-sensors) sensor. But be sure to check the "Enabled" box.
+   When you get to the "enable it and configure" part, enter:
+   * the `apiKey` from step 1: use the "Read Key" PurpleAir sends you,
+     and be sure to enter it here (not in the private sensor key field)
+   * the `sensorId` from step 2
+   * leave `keyForPrivateSensor` blank, unless want to use your own,
+     [private PurpleAir](#private-sensors) sensor
+   
+   Be sure to check the "Enabled" box.
    
    And when you get to "Developer Local Weather Push," stop. (That's a different topic 
    that doesn't apply.)
 
-4. Click "Refresh All" at the top of the Weather Services section.
+5. Click "Refresh All" at the top of the Weather Services section.
 
    If everything is working, *after a few moments* the status column will change to 
    "Success." If you get an error message, see [Troubleshooting](#troubleshooting) below.
  
-5. In the Weather Sensitivity section (above Weather Services on the same page),
+6. In the Weather Sensitivity section (above Weather Services on the same page),
    be sure to enable "Forecast Correction." That tells the RainMachine to use the
    PurpleAir's actual observed conditions to improve the forecast data.
 
@@ -147,6 +163,7 @@ Look for the "Download data" link in the email. If the link is something like
 `https://www.purpleair.com/sensorlist?show=12345&key=ABCDEO1234FGHIJK"`,
 then the `sensorId` is `12345` and the `keyForPrivateSensor` is `ABCDEO1234FGHIJK`.
 
+(Don't confuse `keyForPrivateSensor` with `apiKey`—they're two different keys.)
 
 ## Developing
 
@@ -156,10 +173,11 @@ For bug reports, please be sure to include everything mentioning "PurpleAir" in
 your RainMachine logs (Settings > About > View Log), as well as your RainMachine
 model and firmware version, and which PurpleAir sensorId you're using (if public).
 
-As of July, 2021, RainMachine firmware runs Python 2.7.
+As of June, 2022, RainMachine firmware still runs Python 2.7.
 You'll need that old version of Python to work on this.
-(Newer models on firmware 4.0.1152 run Python 2.7.14, 
-and older ones on firmware 4.0.1003 run Python 2.7.3.)
+(Newer models on firmware 4.0.1163 run Python 2.7.14. 
+Older ones on firmware 4.0.1036 run Python 2.7.3,
+which is not capable of communicating with https://api.purpleair.com.)
 
 To develop, clone this repository. 
 The [RainMachine SDK][rainmachine-sdk] is required,
@@ -181,12 +199,14 @@ pip install -r requirements-test.txt
 export PYTHONPATH=.:./rainmachine-developer-resources/sdk-parsers
 
 # Run the tests:
+export TEST_PURPLEAIR_API_KEY="<your read api key>"
 python -m unittest discover -s ./test -t .
 ```
 
 
 [purpleair_parser_raw]: https://raw.githubusercontent.com/medmunds/rainmachine-weather-purpleair/main/purpleair_parser.py 
 [PurpleAir]: https://www2.purpleair.com/
+[purpleair-contact]: https://www2.purpleair.com/pages/contact-us
 [purpleair-map]: https://www.purpleair.com/map?opt=1/m/i/mTEMP_C/a10/cC0#1.06/-8/-2.1
 [RainMachine]: https://rainmachine.com/
 [rainmachine-custom-weather]: https://support.rainmachine.com/hc/en-us/articles/360011755813-RainMachine-Weather-Engine#h_cbe8605c-72aa-45cf-8e7f-9e67411e4179
